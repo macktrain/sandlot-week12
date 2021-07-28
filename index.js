@@ -1,43 +1,66 @@
-//must run 'npm install inquirer'
+//install mysql
+const mysql = require('mysql');
+//Instatll inquirer
 const inquirer = require('inquirer');
-//No need to install fs,fs is native to node
-const fs = require ('fs');
-let employeeArr = [];
 
-administer();
+const connection = mysql.createConnection({
+    host: 'localhost',
+  
+    // Port using
+    port: 3306,
+  
+    // DB username
+    user: 'root',
+  
+    // DB Password
+    password: 'myp4wd',
 
-function administer ()
-{
+    // DB from mysql
+    database: 'hr_db',
+  });
+//Initialize a globally scoped query string that will be re-used.
+let empQuery =  '';
+empQuery =  'SELECT e.empId as Id, e.first_name as fName, e.last_name as lName, role.title as title, ';
+empQuery += '(Select b.first_name from employee as b where e.mgrId = b.empId) as mgr_Fname, ';
+empQuery += '(Select b.last_name from employee as b where e.mgrId = b.empId) as mgr_Lname ';
+empQuery += 'FROM employee as e ';
+empQuery += 'JOIN role ON e.roleId = role.roleId ';
+empQuery += 'ORDER by e.empId';
 
-    inquirer 
-    .prompt([
-        {
-            type: 'list',
-            message: "What would you like to do?", 
-            name: 'action', 
-            choices: 
-                    [
-                        'View All Employees',
-                        'View All Employees by Department',
-                        'View All Employees by Manager',
-                        'Add New Employee',
-                        'Remove Employee',
-                        'View All Roles',
-                        'Done',
-                    ]
-        }
-    ]) 
-    .then(({empType}) => {
-        switch (empType) 
-        {
+let mgrName = "";
+
+connection.connect((error) => {
+  if (error) throw error;
+  administer_db();
+});
+
+const administer_db = () => {
+    inquirer
+      .prompt({
+        type: 'list',
+        message: 'Which operation would you like to perform?', 
+        name: 'operation', 
+        choices: 
+        [
+            'View All Employees',
+            'View All Employees by Department',
+            'View All Employees by Manager',
+            'Add New Employee',
+            'Remove Employee',
+            'View All Roles',
+            'Done',
+        ]
+      })
+      .then((answer) => {
+        switch (answer.operation) {
             case 'View All Employees':
-                viewEmps("all");
+                viewEmps('all');
                 break;
             case 'View All Employees by Department':
-                viewEmps(deptNum);
-                break;
+                viewEmpsByDept();
+                return;
             case 'View All Employees by Manager':
-                viewEmps(mgrId);
+                viewEmpsByMgr();
                 return;
             case 'Add New Employee':
                 addEmp();
@@ -54,320 +77,232 @@ function administer ()
             default:
                 console.log(`Please select an option`);
         }
-    })
-}
-
-function viewEmps (val)
-{
-    const empSQL = ""
-    switch (val) {
-        case "all":{
-            //print all emps
-            const sql = "Select * from "
-            break;
-        }
-        case "dept":{
-            //print all emps by dept
-            break;
-        }
-        case "mgr":{
-            //print all emps by mgr
-            break;
-        }
-    }
-
-    inquirer 
-    .prompt([
-        {
-            type: 'input',
-            name: 'name',
-            message: 'Enter team members first name:',
-            validate: name => 
-            {
-                if ((name.length === 0) || (name === "NaN"))
-                {
-                    return 'You must enter a valid first name.';
-                }
-                return true;
-            },
-        },
-        {
-            type: 'input',
-            name: 'empNum',
-            message: 'Enter team members employee number:',
-            validate: empNum => 
-            {
-                if ((empNum < 0) || (isNaN(empNum) === true))
-                {
-                    return 'You must enter a numerical employee number.';
-                }
-                return true;
-            },
-        },
-        {
-            type: 'input',
-            name: 'email',
-            message: 'Enter team members email address:',
-            validate: email => 
-            {
-                if (!validEmail(email))
-                {
-                    return 'You must enter a properly formatted email address.';
-                }
-                return true;
-            },
-        },
-        {
-            type: 'input',
-            name: 'acctName',
-            message: 'Enter team member github account name:',
-            validate: acctName => 
-            {
-                if ((acctName.length === 0) || (acctName === "NaN"))
-                {
-                    return 'You must enter a valid github account name.';
-                }
-                return true;
-            },
-        },
-    ]) 
-    .then(answers => {
-        pushEngineer(answers);
-        addTeamMember();
-    })
-}
-
-function addInternDetails ()
-{
-    inquirer 
-    .prompt([
-        {
-            type: 'input',
-            name: 'name',
-            message: 'Enter intern first name:',
-            validate: name => 
-            {
-                if ((name.length === 0) || (name === "NaN"))
-                {
-                    return 'You must enter a valid first name.';
-                }
-                return true;
-            },
-        },
-        {
-            type: 'input',
-            name: 'empNum',
-            message: 'Enter intern employee number:',
-            validate: empNum => 
-            {
-                if ((empNum < 0) || (isNaN(empNum) === true))
-                {
-                    return 'You must enter a numerical employee number.';
-                }
-                return true;
-            },
-        },
-        {
-            type: 'input',
-            name: 'email',
-            message: 'Enter intern email address:',
-            validate: email => 
-            {
-                if (!validEmail(email))
-                {
-                    return 'You must enter a properly formatted email address.';
-                }
-                return true;
-            },
-        },
-        {
-            type: 'input',
-            name: 'school',
-            message: 'Enter intern school name:',
-            validate: school => 
-            {
-                if ((school.length === 0) || (school === "NaN"))
-                {
-                    return 'You must enter a valid school name.';
-                }
-                return true;
-            },
-        },
-    ]) 
-    .then(answers => {
-        pushIntern(answers);
-        addTeamMember();
-        console.log
-    })
-}
-
-//This email validator was borrowed from zparacha.com
-//http://zparacha.com/validate-email-address-using-javascript-regular-expression
-function validEmail(testCase)
-{      
-    var pattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-    return pattern.test(testCase); 
-} 
-
-
-function buildHTML()
-{
-    //Must run 'npm install --save create-html'
-    //loop through object
-    let i = 0;
-    let bodyHTML = "<div id='titleContainer'><div id='title'>My Team</div></div>";
-    bodyHTML += "<div id='container'>";
-    for(let emp of employeeArr){
-        //Container
-        bodyHTML += `<div class='employee'>`;
-            //Header - Name & Role
-            bodyHTML += "<div class='teamHeader'>";
-                bodyHTML += `<div class='name'>${emp.name}</div>`;
-                bodyHTML += `<div class='${emp.role}'>${emp.role}</div>`;
-            bodyHTML += "</div>";
-            bodyHTML += "<div class='teamBody'>";
-                bodyHTML += `<div class='id'>ID: ${emp.id}</div>`;
-                bodyHTML += `<div class='email'>Email: <a href='mailto:${emp.email}'>${emp.email}</a></div>`;
-                switch(emp.role) {
-                    case "Manager":
-                        bodyHTML += `<div class='office'>Office number: ${emp.officeNum}</div>`;
-                      break;
-                    case "Engineer":
-                        bodyHTML += `<div class='office'>Github: ${emp.github}</div>`;
-                    break;
-                    case "Intern":
-                        bodyHTML += `<div class='office'>School: ${emp.school}</div>`;
-                    break;
-                    default:
-                      // code block
-                  }
-            bodyHTML += "</div>";
-        bodyHTML += "</div>";
-    };
-
-    bodyHTML += "</div>";
-
-    var html = createHTML({
-        title: 'My Team',
-        //script: 'noJSFiles.js',
-        scriptAsync: true,
-        css: './style/myTeam.css',
-        lang: 'en',
-        dir: 'rtl',
-        head: '<meta name="description" content="example">',
-        body: bodyHTML
-      });
-
-    fs.writeFileSync(`${process.cwd()}/index.html`, html);
-}
-
-//Employee Object
-class Employee {
-    constructor(name, id, email) 
-    {
-      this.name = name;
-      this.id = id;
-      this.email = email;
-      this.role = "Employee";
-    }
-    // Method
-    getName() 
-    {
-        return this.name;
-    }
-    getID() 
-    {
-        return this.id;
-    }
-    getEmail() 
-    {
-        return this.email;
-    }
-    getRole() 
-    {
-        return this.role;
-    }
-  }
-  
-  class Manager extends Employee {
-    constructor(name, id, email, officeNum) 
-    {
-        super(name, id, email);
-        this.officeNum = officeNum;
-        this.role = "Manager";
-    }
-    
-    getOfficeNum() 
-    {
-        return this.officeNum;
-    }
-    
-    getRole() 
-    {
-        return this.role;
-    }
-}
-  
-class Engineer extends Employee {
-  constructor(name, id, email, acctName) 
-  {
-      super(name, id, email);
-      this.github = acctName;
-      this.role = "Engineer";
-  }
-  
-  getGithub() 
-  {
-      return this.github;
-  }
-  
-  getRole() 
-  {
-      return this.role;
-  }
-}
-  
-class Intern extends Employee {
-  constructor(name, id, email, school) 
-  {
-      super(name, id, email);
-      this.school = school;
-      this.role = "Intern";
-  }
-  
-  getSchool() 
-  {
-      return this.school;
-  }
-  
-  getRole() 
-  {
-      return this.role;
-  }
-}
-
-function pushManager(mgrArr)
-{
-    const manager = new Manager(mgrArr.name, mgrArr.empNum, mgrArr.email, mgrArr.officeNum);
-    employeeArr.push(manager)
-}
-
-function pushEngineer(engArr)
-{
-    const engineer = new Engineer(engArr.name, engArr.empNum, engArr.email, engArr.acctName);
-    employeeArr.push(engineer)
-}
-
-function pushIntern(intArr)
-{
-    const intern = new Intern(intArr.name, intArr.empNum, intArr.email, intArr.school);
-    employeeArr.push(intern)
-}
-
-module.exports = 
-{
-    Employee, 
-    Manager, 
-    Engineer, 
-    Intern
+    });
 };
+
+const viewEmps = (val) => {
+
+    //https://dba.stackexchange.com/questions/129023/selecting-data-from-another-table-using-a-foreign-key
+
+    //print all emps
+    connection.query(empQuery, function (err, result, fields) {
+        if (err) throw err;
+        let empArr = [];
+        Object.keys(result).forEach(function(key) {
+            let mgrName = '';
+            let row = result[key];
+            if (row.mgr_Fname !== null)
+                mgrName = row.mgr_Fname + ' ' + row.mgr_Lname;
+            else
+                mgrName = 'No Manager';
+            const emp = new Employee (row.Id, row.fName, row.lName, row.title, mgrName);
+            empArr.push(emp);
+        });
+        console.table(empArr);
+        administer_db();
+    });
+};
+
+const viewEmpsByDept = () => {
+    let deptSelectQuery = 'SELECT * from department ';
+    let deptSelectArr = [];
+    
+    connection.query(deptSelectQuery, function (err, result, fields) {
+        if (err) throw err;
+        Object.keys(result).forEach(function(key) {
+            let row = result[key];
+            const dept = new Department (row.deptId, row.deptName);
+            //This array will be used for the next inquirer list
+            deptSelectArr.push(dept.deptName);
+        });
+        //Now that the possible depts have been found, find which they want to view by
+        inquirer.prompt({
+            name: 'selection',
+            type: 'list',
+            message: 'Select the departent you want to view',
+            choices: deptSelectArr
+        })
+        .then((answer) => {
+            //print all emps by department
+            let deptQuery = 'SELECT e.empId as Id, e.first_name as fName, e.last_name as lName, r.title as title, d.deptName, ';
+            deptQuery += '(Select b.first_name from employee as b where e.mgrId = b.empId) as mgr_Fname, ';
+            deptQuery += '(Select b.last_name from employee as b where e.mgrId = b.empId) as mgr_Lname ';
+            deptQuery += 'FROM employee as e ';
+            deptQuery += 'LEFT JOIN role as r ON e.roleId = r.roleId ';
+            deptQuery += 'JOIN department as d ON r.deptID = d.deptId ';
+            deptQuery += 'WHERE d.deptName = ? ';
+            deptQuery += 'order by e.empId ';
+
+            connection.query(deptQuery, [answer.selection], function (err, result, fields) {
+                if (err) throw err;
+                let empArr = [];
+                Object.keys(result).forEach(function(key) {
+                    let mgrName = '';
+                    let row = result[key];
+                    if (row.mgr_Fname !== null)
+                        mgrName = row.mgr_Fname + ' ' + row.mgr_Lname;
+                    else
+                        mgrName = 'No Manager';
+                    const emp = new Employee (row.Id, row.fName, row.lName, row.title, mgrName);
+                    empArr.push(emp);
+                });
+                console.table(empArr);
+                administer_db();
+            });
+        });
+    });
+};
+
+const viewEmpsByMgr = () => {
+    let mgrSelectQuery = 'SELECT empId, first_name, last_name FROM employee WHERE mgrId IS NULL ';
+    let mgrSelectArr = [];
+    
+    connection.query(mgrSelectQuery, function (err, result, fields) {
+        if (err) throw err;
+        Object.keys(result).forEach(function(key) {
+            let row = result[key];
+            const mgr = `ID: ${row.empId} - ${row.first_name} ${row.last_name}`;
+            //This array will be used for the next inquirer list
+            mgrSelectArr.push(mgr);
+
+        });
+        //Now that the possible mgrs have been found, find which they want to view by
+        inquirer.prompt({
+            name: 'selection',
+            type: 'list',
+            message: 'Select the departent you want to view',
+            choices: mgrSelectArr
+        })
+        .then((answer) => {
+            //This splits up the selection so that I can pull away the mgrId (e.g. empId)
+            let mgrString = answer.selection;
+            const mgrChosen = mgrString.split(" ");
+            const choiceId = mgrChosen[1];
+            mgrName = mgrChosen[3] + " " + mgrChosen[4];
+
+            //print all emps by department
+            let teamQuery = 'SELECT e.empId as Id, e.first_name as fName, e.last_name as lName, r.title as title ';
+            teamQuery += 'FROM employee as e ';
+            teamQuery += 'LEFT JOIN role as r ON e.roleId = r.roleId ';
+            teamQuery += 'WHERE e.mgrId = ? ';
+            teamQuery += 'order by e.empId ';
+
+            connection.query(teamQuery, [choiceId], function (err, result, fields) {
+                if (err) throw err;
+                let mgrArr = [];
+                Object.keys(result).forEach(function(key) {
+                    let row = result[key];
+                    const emp = new Employee (row.Id, row.fName, row.lName, row.title, mgrName);
+                    mgrArr.push(emp);
+                });
+                console.table(mgrArr);
+                administer_db();
+            });
+        });
+    });
+};
+
+const addEmp = () => {
+    const roleQuery = 'SELECT roleId, title, max_salary FROM role ';
+    const mgrQuery = 'SELECT empId, first_name, last_name FROM employee WHERE mgrId IS NULL ';
+    
+    let mgrSelectArr = [];
+    let roleSelectArr = [];
+    
+    connection.query(mgrQuery, function (err, result, fields) {
+        if (err) throw err;
+        Object.keys(result).forEach(function(key) {
+            let row = result[key];
+            const mgrs = `ID: ${row.empId} - ${row.first_name} ${row.last_name}`;
+            //This array will be used for the next inquirer list
+            mgrSelectArr.push(mgrs);
+
+        });
+
+        connection.query(roleQuery, function (err, result, fields) {
+            if (err) throw err;
+            Object.keys(result).forEach(function(key) {
+                let row = result[key];
+                const role = new Role (row.roleId, row.title, row.max_salary, row.deptId);
+                //This array will be used for the next inquirer list
+                roleSelectArr.push(role.title);
+            });
+
+            inquirer
+            .prompt([
+                {
+                    name: 'first_name',
+                    type: 'input',
+                    message: 'What is the new employees first name?',
+                    validate: async (input) => {
+                        if (input.length === 0) 
+                        {
+                            return 'You must enter something!';
+                        }
+                        return true;
+                    }
+                },
+                {
+                    name: 'last_name',
+                    type: 'input',
+                    message: 'What is the new employees last name?',
+                    validate: async (input) => {
+                        if (input.length === 0) 
+                        {
+                            return 'You must enter something!';
+                        }
+                        return true;
+                    }
+                },
+                {
+                    name: 'selectedRole',
+                    type: 'list',
+                    message: 'What is the new employees role?',
+                    choices: roleSelectArr
+                },
+                {
+                    name: 'selectedMgr',
+                    type: 'list',
+                    message: 'Who will be their manager?',
+                    choices: mgrSelectArr
+                },
+            ])
+            .then((answer) => {
+                let mgrString = answer.selectedMgr;
+                const mgrChosen = mgrString.split(" ");
+                const choiceId = mgrChosen[1];
+
+                let insertSQL = 'INSERT INTO hr_db.employee (first_name, last_name, roleId, mgrId) ';
+                insertSQL += `VALUES  ('${answer.first_name}', '${answer.last_name}', `;
+                insertSQL += '(SELECT roleId FROM role WHERE title = ?), ?) '; 
+                
+                connection.query(insertSQL, [answer.selectedRole, choiceId], function (err, result, fields) {
+                    if (err) throw err;
+                    console.log (`${answer.first_name} ${answer.last_name} has been added.`);
+                    //START OVER
+                    administer_db();
+                });
+            });
+        });
+    });
+}
+
+function Employee (empId, first_name, last_name, title, mgrName ) {
+    this.empId = empId;
+    this.first_name = first_name;
+    this.last_name = last_name;
+    this.title = title;
+    this.mgrName = mgrName;
+}
+
+function Department (deptId, deptName) {
+    this.deptId = deptId;
+    this.deptName = deptName;
+}
+
+function Role (roleId, title, max_salary, deptId) {
+    this.roleId = roleId;
+    this.title = title;
+    this.max_salary = max_salary;
+    this.deptId = deptId;
+}

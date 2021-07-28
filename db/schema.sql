@@ -56,11 +56,11 @@ CREATE TABLE hr_db.employee (
 
 SET foreign_key_checks = 0;
 
-INSERT INTO hr_db.employee (first_name, last_name, roleId, mgrId) 
-VALUES  ('Lee', 'Macklin', (SELECT roleId FROM hr_db.role WHERE title='Engineering Manager'), 0),
-        ('Cliff', 'Macklin', (SELECT roleId FROM hr_db.role WHERE title='Marketing Manager'), 0),
-        ('Tyler', 'Bolty', (SELECT roleId FROM hr_db.role WHERE title='Sales Manager'), 0),
-        ('Ana', 'Abad', (SELECT roleId FROM hr_db.role WHERE title='Support Manager'), 0);
+INSERT INTO hr_db.employee (first_name, last_name, roleId) 
+VALUES  ('Lee', 'Macklin', (SELECT roleId FROM hr_db.role WHERE title='Engineering Manager')),
+        ('Cliff', 'Macklin', (SELECT roleId FROM hr_db.role WHERE title='Marketing Manager')),
+        ('Tyler', 'Bolty', (SELECT roleId FROM hr_db.role WHERE title='Sales Manager')),
+        ('Ana', 'Abad', (SELECT roleId FROM hr_db.role WHERE title='Support Manager'));
 
 SET foreign_key_checks = 1;
 

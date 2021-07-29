@@ -483,6 +483,8 @@ const viewDepts = () => {
             deptSelectArr.push(row);
         });
         console.table(deptSelectArr);
+        //START OVER
+        administer_db();
     });
 }
 

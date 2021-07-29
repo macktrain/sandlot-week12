@@ -1,0 +1,24 @@
+{
+  "name": "sandlot-week12",
+  "version": "1.0.0",
+  "description": "This application is a mock HR management system that allows a user to do manage a mock database of employee relationships between each other as employee/manager (employee table), employee roles (role table) with specific attributes of each role as well as a set of departments (department table).  Along with this a set of functions are provided.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/macktrain/sandlot-week12.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/macktrain/sandlot-week12/issues"
+  },
+  "homepage": "https://github.com/macktrain/sandlot-week12#readme",
+  "dependencies": {
+    "inquirer": "^8.1.2",
+    "mysql": "^2.18.1"
+  }
+}

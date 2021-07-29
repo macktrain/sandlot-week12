@@ -42,7 +42,7 @@ const administer_db = () => {
         [
             'View All Employees',
             'Add New Employee',
-            'Remove Employee',
+            'Delete an Employee',
             'View All Roles',
             'Add New Role',
             'Delete a Role',
@@ -64,7 +64,7 @@ const administer_db = () => {
             case 'Add New Employee':
                 addEmp();
                 break;
-            case 'Delete a Employee':
+            case 'Delete an Employee':
                 deleteEmp();
                 break;
             case 'View All Roles':
@@ -324,10 +324,9 @@ const deleteEmp = () => {
         let empArr = [];
         Object.keys(result).forEach(function(key) {
             let row = result[key];
-            const emp = new Employee (row.Id, row.fName, row.lName, row.title, mgrName);
             empArr.push(`Employee#: ${row.Id} Name: ${row.fName} ${row.lName}`);
         });
-
+        
         //Now determine which employee to delete
         inquirer.prompt({
             name: 'toDelete',

@@ -37,3 +37,4 @@ A database Schema was implemented as such:
 
 ## CREATED BY
 Lee Macklin
+contact email: leemacklin@yahoo.com

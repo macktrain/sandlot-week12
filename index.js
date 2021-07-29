@@ -127,6 +127,7 @@ const viewEmps = (val) => {
             const emp = new Employee (row.Id, row.fName, row.lName, row.title, mgrName);
             empArr.push(emp);
         });
+        //Display Employee data in tabular format
         console.table(empArr);
         administer_db();
     });

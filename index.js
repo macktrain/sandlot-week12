@@ -25,11 +25,13 @@ empQuery += 'ORDER by e.empId';
 
 let mgrName = "";
 
+//upon successful connect, the administer_db is kicked off
 connection.connect((error) => {
   if (error) throw error;
   administer_db();
 });
 
+//This administer_db allows a user to administrate the employee db with various functions
 const administer_db = () => {
     inquirer
       .prompt({
@@ -47,6 +49,8 @@ const administer_db = () => {
             'View All Departments',
             'Add New Department',
             'Delete a Department',
+            'Update Employee Manager',
+            'Update Employee Role',
             'View All Employees by Department',
             'View All Employees by Manager',
             'Done',
@@ -81,6 +85,12 @@ const administer_db = () => {
             case 'Delete a Department':
                 deleteDept();
                 break;
+            case 'Update Employee Manager':
+                updateEmpMgr();
+                return;
+            case 'Update Employee Role':
+                updateEmpRole();
+                return;
             case 'View All Employees by Department':
                 viewEmpsByDept();
                 return;
@@ -98,14 +108,15 @@ const administer_db = () => {
     });
 };
 
+//User can view all employees with this funciton
 const viewEmps = (val) => {
-
-    //https://dba.stackexchange.com/questions/129023/selecting-data-from-another-table-using-a-foreign-key
-
     //print all emps
     connection.query(empQuery, function (err, result, fields) {
+        //if unsuccessful query, an error is thrown
         if (err) throw err;
+        //Placeholder arr for the employee results
         let empArr = [];
+        //Loop through results and build out empArr with all of the employee results.  
         Object.keys(result).forEach(function(key) {
             let mgrName = '';
             let row = result[key];
@@ -535,6 +546,119 @@ const deleteDept = () => {
             });
             //START OVER
             administer_db();
+        });
+    });
+}
+
+const updateEmpMgr = () => {
+    //creating selector list with all emps and their manager name
+    connection.query(empQuery, function (err, result, fields) {
+        if (err) throw err;
+        let empArr2GetNewmanager = [];
+        let empArrNewManager = [];
+        Object.keys(result).forEach(function(key) {
+            let mgrName = '';
+            let row = result[key];
+            if (row.mgr_Fname !== null)
+                mgrName = row.mgr_Fname + ' ' + row.mgr_Lname;
+            else
+                mgrName = 'No Manager';
+            empArr2GetNewmanager.push(`EmpId#: ${row.Id} ${row.fName} ${row.lName} with Manager ${mgrName} `);
+            empArrNewManager.push(`EmpId#: ${row.Id} ${row.fName} ${row.lName}`);
+        });
+        
+        inquirer.prompt([
+            {
+                name: 'employee',
+                type: 'list',
+                message: 'Which employee do you want to assign a new Manager?',
+                choices: empArr2GetNewmanager,
+            },
+            {
+                name: 'newManager',
+                type: 'list',
+                message: 'Which employee should be their new manager?',
+                choices: empArrNewManager,
+            },
+        ])
+        .then((answer) => {
+            let emp2Change = answer.employee;
+            const empSplit = emp2Change.split(" ");
+            const empId = empSplit[1];
+
+            let mgr4update = answer.newManager;
+            const mgrSplit = mgr4update.split(" ");
+            const mgrId = mgrSplit[1];
+
+            let updateSQL = 'UPDATE employee ';
+            updateSQL += 'SET mgrId = ? ';
+            updateSQL += 'WHERE empId = ? '; 
+            console.log (updateSQL);
+            
+            connection.query(updateSQL, [mgrId, empId], function (err, result, fields) {
+                if (err) throw err;
+                console.log ('Employee manager updated');
+            });
+            //START OVER
+            administer_db();
+        });
+    });
+}
+
+const updateEmpRole = () => {
+    //creating selector list with all emps and their role
+    connection.query(empQuery, function (err, result, fields) {
+        if (err) throw err;
+        let empArr2GetNewRole = [];
+        let newRoles = [];
+        //This create array of all employees with current title
+        Object.keys(result).forEach(function(key) {
+            let row = result[key];
+            empArr2GetNewRole.push(`EmpId#: ${row.Id} ${row.fName} ${row.lName} with title ${row.title} `);
+        });
+
+        connection.query('SELECT * FROM role', function (err, result, fields) {
+            //This create array of all all titles available
+            Object.keys(result).forEach(function(key) {
+                let row = result[key];
+                newRoles.push(`RoleId#: ${row.roleId} Title: ${row.title}`);
+            });
+        
+            inquirer.prompt([
+                {
+                    name: 'employee',
+                    type: 'list',
+                    message: 'Which employee do you want to assign a new role?',
+                    choices: empArr2GetNewRole,
+                },
+                {
+                    name: 'newRole',
+                    type: 'list',
+                    message: 'What is their new role?',
+                    choices: newRoles,
+                },
+            ])
+            .then((answer) => {
+                let emp2Change = answer.employee;
+                const empSplit = emp2Change.split(" ");
+                const empId = empSplit[1];
+
+                let role4update = answer.newRole;
+                const roleSplit = role4update.split(" ");
+                const roleId = roleSplit[1];
+
+                let updateSQL = 'UPDATE employee ';
+                updateSQL += 'SET roleId = ? ';
+                updateSQL += 'WHERE empId = ? '; 
+                
+                connection.query(updateSQL, [roleId, empId], function (err, result, fields) {
+                    if (err) throw err;
+                    console.log ('/n Employee role updated');
+                });
+
+                //START OVER
+                administer_db();
+            });
         });
     });
 }
